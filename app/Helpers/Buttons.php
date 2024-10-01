@@ -12,24 +12,30 @@ class Buttons
         'keyboard' => [
             [
                 [
-                    'text' => "Oxirgi 1 soat ichida"
+                    'text' => "Yangi post joylash"
                 ]
             ],
             [
                 [
-                    'text' => "Bugungi kun bo'yicha"
+                    'text' => "Rejalashtirilgan postlar hisoboti"
                 ]
             ],
             [
                 [
-                    'text' => "Kechagi kun bo'yicha"
+                    'text' => "Yuborilgan postlar hisoboti"
                 ]
             ],
+        ]
+    ];
+
+    public $add_post = [
+        'resize_keyboard' => true,
+        'keyboard' => [
             [
                 [
-                    'text' => "⏪ Ortga"
+                    'text' => "Postni joylash"
                 ]
-            ]
+            ],
         ]
     ];
 
@@ -157,119 +163,4 @@ class Buttons
             ],
         ]
     ];
-
-    public $report_detail_buttons_for_admin = [
-        'inline_keyboard' => [
-            [
-                [
-                    'text' => "Oxirgi 1 soat ichida",
-                    'callback_data' => 'oxirgi_1_soat_ichida'
-                ]
-            ],
-            [
-                [
-                    'text' => "Bugungi kun bo'yicha",
-                    'callback_data' => 'bugungi_kun_bo\'yicha'
-                ]
-            ],
-            [
-                [
-                    'text' => "Kechagi kun bo'yicha",
-                    'callback_data' => 'kechagi_kun_bo\'yicha'
-                ]
-            ],
-            [
-                [
-                    'text' => "⏪ Ortga",
-                    'callback_data' => 'ortga'
-                ]
-            ]
-        ]
-    ];
-
-    public function status_start_button_for_admin()
-    {
-        return $status_start_button_for_admin = [
-            'inline_keyboard' => [
-                [
-                    ['text' => "🟢 Ish jarayonini boshlash", 'callback_data' => 'ish_jarayonini_boshlash']
-                ],
-                [
-                    ['text' => "👥 Ish jarayonidagi adminlar", 'callback_data' => 'ish_jarayonidagi_adminlar']
-                ],
-                [
-                    ['text' => "✍️ Murojaat qilgan mijozlar", 'callback_data' => 'murojaat_qilgan_mijozlar']
-                ],
-                [
-                    ['text' => "👥 Kechikib javob berilgan mijozlar", 'callback_data' => 'kechikib_javob_berilgan_mijozlar']
-                ],
-                [
-                    ['text' => "📧 Zaxiradagi mijozlar (" . $this->clientReserveCount() . ")", 'callback_data' => 'zaxiradagi_mijozlar']
-                ]
-            ]
-        ];
-    }
-
-    public function status_stop_button_for_admin()
-    {
-        return $status_stop_button_for_admin = [
-            'inline_keyboard' => [
-                [
-                    ['text' => "🔴 Ish jarayonini yakunlash", 'callback_data' => 'ish_jarayonini_yakunlash']
-                ],
-                [
-                    ['text' => "👥 Ish jarayonidagi adminlar", 'callback_data' => 'ish_jarayonidagi_adminlar']
-                ],
-                [
-                    ['text' => "✍️ Murojaat qilgan mijozlar", 'callback_data' => 'murojaat_qilgan_mijozlar']
-                ],
-                [
-                    ['text' => "👥 Kechikib javob berilgan mijozlar", 'callback_data' => 'kechikib_javob_berilgan_mijozlar']
-                ],
-                [
-                    ['text' => "📧 Zaxiradagi mijozlar (" . $this->clientReserveCount() . ")", 'callback_data' => 'zaxiradagi_mijozlar']
-                ]
-            ]
-        ];
-    }
-
-    public $code_for_client = [
-        'resize_keyboard' => true,
-        'keyboard' => [
-            [
-                [
-                    'text' => "🆔 Chegirma Kodini olish"
-                ]
-            ]
-        ]
-    ];
-
-    public $invite_group_link = [
-        'inline_keyboard' => [
-            [
-                [
-                    'text' => "GARANT SAVDO guruhiga obuna bo'lish",
-                    'url' => 'https://t.me/garantsavdo_chat'
-                ]
-            ],
-            [
-                [
-                    'text' => "GARANT GOLD guruhiga obuna bo'lish",
-                    'url' => 'https://t.me/garant_gold_markazi'
-                ]
-            ]
-        ]
-    ];
-
-    /**
-     * Zaxiradagi mijozlar sonini bilish
-     */
-    private function clientReserveCount()
-    {
-        $client_reserve_count = ClientReserve::query()
-            ->whereNull('admin_id')
-            ->count();
-
-        return $client_reserve_count;
-    }
 }
