@@ -36,6 +36,11 @@ class Buttons
                     'text' => "Postni joylash"
                 ]
             ],
+            [
+                [
+                    'text' => "⏪ Ortga"
+                ]
+            ],
         ]
     ];
 
@@ -44,31 +49,19 @@ class Buttons
         'keyboard' => [
             [
                 [
-                    'text' => "Monday"
+                    'text' => "Today"
                 ],
                 [
-                    'text' => "Tuesday"
+                    'text' => "Tomorrow"
                 ],
 
                 [
-                    'text' => "Wednesday"
+                    'text' => "Ertadan keyingi sana"
                 ]
             ],
             [
                 [
-                    'text' => "Thursday"
-                ],
-                [
-                    'text' => "Friday"
-                ],
-
-                [
-                    'text' => "Saturday"
-                ]
-            ],
-            [
-                [
-                    'text' => "Sunday"
+                    'text' => "⏪ Ortga"
                 ]
             ],
         ]
@@ -160,6 +153,11 @@ class Buttons
                 [
                     'text' => "00:00"
                 ],
+            ],
+            [
+                [
+                    'text' => "⏪ Ortga"
+                ]
             ],
         ]
     ];
