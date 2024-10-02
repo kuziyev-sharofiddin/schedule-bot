@@ -13,14 +13,13 @@ return new class extends Migration
     {
         Schema::create('messages', function (Blueprint $table) {
             $table->id();
-            $table->string('chat_id');
-            $table->string('message_id');
-            $table->string('day');
-            $table->time('time');
+            $table->string('chat_id')->nullable();
+            $table->string('from_chat_message_id')->nullable();
+            $table->string('day')->nullable();
+            $table->time('time')->nullable();
             $table->timestamps();
         });
     }
-
     /**
      * Reverse the migrations.
      */

@@ -3,6 +3,7 @@
 namespace App\Helpers;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class Telegram
 {
@@ -254,14 +255,34 @@ class Telegram
         return $this->http::post(self::url . env('TELEGRAM_BOT_TOKEN') . '/sendDocument', $data);
     }
 
-    public function forwardMessages($chat_id, $message_thread_id, $from_chat_id, $message_ids)
+//    public function forwardMessage($chat_id, $from_chat_id, $message_id)
+//    {
+//        return $this->http::post(self::url . env('TELEGRAM_BOT_TOKEN') . '/forwardMessage', [
+//            'chat_id' => $chat_id,
+//            'from_chat_id' => $from_chat_id,
+//            'message_id' => $message_id
+//        ]);
+//    }
+    public function forwardMessage($chat_id, $from_chat_id, $message_id)
     {
-        return $this->http::post(self::url . env('TELEGRAM_BOT_TOKEN') . '/forwardMessages', [
+        $response = $this->http::post(self::url . env('TELEGRAM_BOT_TOKEN') . '/forwardMessage', [
             'chat_id' => $chat_id,
-            'message_thread_id' => $message_thread_id,
             'from_chat_id' => $from_chat_id,
-            'message_ids' => $message_ids
+            'message_id' => $message_id
         ]);
+
+        // API javobini tekshirish
+        if ($response->failed()) {
+            // Xatolik haqida xabar berish
+            Log::error('Forward message failed', [
+                'response' => $response->json(),
+                'chat_id' => $chat_id,
+                'from_chat_id' => $from_chat_id,
+                'message_id' => $message_id,
+            ]);
+        }
+
+        return $response;
     }
 
     public function sendContact($chat_id, $phone_number, $first_name, $message_thread_id = null)

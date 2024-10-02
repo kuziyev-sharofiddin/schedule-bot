@@ -11,7 +11,7 @@ class Message extends Model
 
     protected $fillable = [
         'chat_id',
-        'message_id',
+        'from_chat_message_id',
         'day',
         'time'
     ];

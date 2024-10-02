@@ -34,6 +34,11 @@ class Buttons
                     'text' => "Yuborilgan postlar hisoboti"
                 ]
             ],
+            [
+                [
+                    'text' => "⏪ Ortga"
+                ]
+            ],
         ]
     ];
 
@@ -52,28 +57,37 @@ class Buttons
             ],
         ]
     ];
+    public $completed_button = [
+        'resize_keyboard' => true,
+        'keyboard' => [
+            [
+                [
+                    'text' => "Yakunlash"
+                ]
+            ],
+            [
+                [
+                    'text' => "⏪ Ortga"
+                ]
+            ],
+        ]
+    ];
 
-//    public $report_buttons  = [
-//            'resize_keyboard' => true,
-//            'keyboard' => [
-//                [
-//                    [
-//                        'text' => "tomorrow"
-//                    ],
-//                    [
-//                        'text' => "next day"
-//                    ],
-//                    [
-//                        'text' => "next day tomorrow"
-//                    ]
-//                ],
-//                [
-//                    [
-//                        'text' => "⏪ Ortga"
-//                    ]
-//                ],
-//            ]
-//    ];
+    public $confirm_button = [
+        'resize_keyboard' => true,
+        'keyboard' => [
+            [
+                [
+                    'text' => "Tasdiqlash"
+                ]
+            ],
+            [
+                [
+                    'text' => "⏪ Ortga"
+                ]
+            ],
+        ]
+    ];
     public function getReportButtons()
     {
         $today = Carbon::today();
