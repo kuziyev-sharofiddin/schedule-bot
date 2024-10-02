@@ -7,6 +7,7 @@ use App\Helpers\CustomFunctions;
 use App\Helpers\Telegram;
 use App\Models\Message;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class MessageController extends Controller
 {
@@ -45,7 +46,9 @@ class MessageController extends Controller
             elseif (isset($request->message['text']) && (in_array($request->message['text'], ['Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba', 'Yakshanba']))) {
                 // $chat_id asosida cache kalitini o'rnating
                 cache()->put("selected_day_$chat_id", $request->message['text']);
-                $this->telegram->sendButtons($chat_id, "Iltimos, vaqtni tanlang yoki qo'lda kiriting (24-soat formatida, masalan: 10:00):", $this->buttons->number_buttons);
+                $number_buttons = $this->buttons->getNumberButtons($request->message['text']);
+//                Log::info('Generated number buttons:', $number_buttons);
+                $this->telegram->sendButtons($chat_id, "Iltimos, vaqtni tanlang yoki qo'lda kiriting (24-soat formatida, masalan: 10:00):", $number_buttons);
             }
             elseif (isset($request->message['text']) && (preg_match('/^([01]\d|2[0-3]):([0-5]\d)$/', $request->message['text']))) {
                 cache()->put("selected_time_$chat_id", $request->message['text']);
