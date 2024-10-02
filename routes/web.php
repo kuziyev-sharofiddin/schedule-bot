@@ -19,7 +19,7 @@ Route::get('/', function () {
 
 Route::get('/setwebhook', function () {
     $response = \Telegram\Bot\Laravel\Facades\Telegram::setWebhook([
-        'url' => 'https://3679-91-196-77-120.ngrok-free.app/api/schedule-message-bot'
+        'url' => 'https://a302-91-196-77-120.ngrok-free.app/api/schedule-message-bot'
     ]);
     return $response;
 });

@@ -7,6 +7,15 @@ use Carbon\Carbon;
 
 class Buttons
 {
+    protected $daysOfWeek = [
+        'Monday' => 'Dushanba',
+        'Tuesday' => 'Seshanba',
+        'Wednesday' => 'Chorshanba',
+        'Thursday' => 'Payshanba',
+        'Friday' => 'Juma',
+        'Saturday' => 'Shanba',
+        'Sunday' => 'Yakshanba'
+    ];
     public $report_detail_buttons = [
         'resize_keyboard' => true,
         'keyboard' => [
@@ -44,46 +53,77 @@ class Buttons
         ]
     ];
 
-    public $report_buttons = [
-        'resize_keyboard' => true,
-        'keyboard' => [
-            [
-                [
-                    'text' => "Today"
-                ],
-                [
-                    'text' => "Tomorrow"
-                ],
+//    public $report_buttons  = [
+//            'resize_keyboard' => true,
+//            'keyboard' => [
+//                [
+//                    [
+//                        'text' => "tomorrow"
+//                    ],
+//                    [
+//                        'text' => "next day"
+//                    ],
+//                    [
+//                        'text' => "next day tomorrow"
+//                    ]
+//                ],
+//                [
+//                    [
+//                        'text' => "⏪ Ortga"
+//                    ]
+//                ],
+//            ]
+//    ];
+    public function getReportButtons()
+    {
+        $today = Carbon::today();
+        $tomorrow = Carbon::tomorrow();
+        $day_after_tomorrow = Carbon::today()->addDays(2);
 
+        $today_weekday = $this->daysOfWeek[$today->format('l')];
+        $tomorrow_weekday = $this->daysOfWeek[$tomorrow->format('l')];
+        $day_after_tomorrow_weekday = $this->daysOfWeek[$day_after_tomorrow->format('l')];
+
+        return [
+            'resize_keyboard' => true,
+            'keyboard' => [
                 [
-                    'text' => "Ertadan keyingi sana"
-                ]
-            ],
-            [
+                    [
+                        'text' => $today_weekday
+                    ],
+                    [
+                        'text' =>  $tomorrow_weekday
+                    ],
+                    [
+                        'text' => $day_after_tomorrow_weekday
+                    ]
+                ],
                 [
-                    'text' => "⏪ Ortga"
-                ]
-            ],
-        ]
-    ];
+                    [
+                        'text' => "⏪ Ortga"
+                    ]
+                ],
+            ]
+        ];
+    }
 
     public $number_buttons = [
         'resize_keyboard' => true,
         'keyboard' => [
+            [
                 [
-                    [
-                        'text' => "01:00"
-                    ],
-                    [
-                        'text' => "02:00"
-                    ],
-                    [
-                        'text' => "03:00"
-                    ],
-                    [
-                        'text' => "04:00"
-                    ],
+                    'text' => "01:00"
                 ],
+                [
+                    'text' => "02:00"
+                ],
+                [
+                    'text' => "03:00"
+                ],
+                [
+                    'text' => "04:00"
+                ],
+            ],
             [
                 [
                     'text' => "05:00"
@@ -161,4 +201,5 @@ class Buttons
             ],
         ]
     ];
+
 }

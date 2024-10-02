@@ -39,9 +39,10 @@ class MessageController extends Controller
                 $this->telegram->sendButtons($chat_id, "Yuborilgan postlar hisoboti:");
             }
             if (isset($request->message['forward_from']) || isset($request->message['forward_from_chat'])) {
-                $this->telegram->sendButtons($chat_id, "Iltimos, hafta kunini belgilang:", $this->buttons->report_buttons);
+                $report_buttons = $this->buttons->getReportButtons();
+                $this->telegram->sendButtons($chat_id, "Iltimos, hafta kunini belgilang:", $report_buttons);
             }
-            elseif (isset($request->message['text']) && (in_array($request->message['text'], ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']))) {
+            elseif (isset($request->message['text']) && (in_array($request->message['text'], ['Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba', 'Yakshanba']))) {
                 // $chat_id asosida cache kalitini o'rnating
                 cache()->put("selected_day_$chat_id", $request->message['text']);
                 $this->telegram->sendButtons($chat_id, "Iltimos, vaqtni tanlang yoki qo'lda kiriting (24-soat formatida, masalan: 10:00):", $this->buttons->number_buttons);
