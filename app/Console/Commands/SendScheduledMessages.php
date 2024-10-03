@@ -33,12 +33,12 @@ class SendScheduledMessages extends Command
         $day = $now->format('l'); // Hafta kunini olish
         $time = $now->format('H:i'); // Vaqtni olish
 
-        $messages = Message::where('day', $day)->where('time', $time)->get();
+        $messages = Message::query()->get();
 
         foreach ($messages as $message) {
             Telegram::forwardMessage([
                 'chat_id' => env('TELEGRAM_GROUP_ID'),
-                'from_chat_id' => $message->chat_id,
+                'from_chat_id' => $message->from_chat_message_id,
                 'message_id' => $message->message_id
             ]);
 

@@ -14,8 +14,9 @@ return new class extends Migration
         Schema::create('messages', function (Blueprint $table) {
             $table->id();
             $table->string('chat_id')->nullable();
-            $table->string('from_chat_message_id')->nullable();
-            $table->string('day')->nullable();
+            $table->string('message_id')->nullable();
+            $table->string('weekDay')->nullable();
+            $table->date('date')->nullable();
             $table->time('time')->nullable();
             $table->timestamps();
         });
