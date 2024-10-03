@@ -6,10 +6,8 @@ use App\Helpers\Buttons;
 use App\Helpers\CustomFunctions;
 use App\Helpers\DateFormatFunc;
 use App\Helpers\Telegram;
-use App\Models\Message;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 
 class MessageController extends Controller
 {
@@ -60,15 +58,14 @@ class MessageController extends Controller
                     $report_buttons = $this->buttons->getReportButtons();
                     $this->telegram->sendButtons($chat_id, "Kiritilgan sana noto'g'ri. Iltimos, bugungi kundan uch kun ichida biror sanani tanlang:", $report_buttons);
                 }
-            }
-            elseif (isset($request->message['text'])) {
-                $selected_date = cache()->get("selected_date_".$chat_id); // Cache'dan tanlangan sanani olish
+            } elseif (isset($request->message['text'])) {
+                $selected_date = cache()->get("selected_date_" . $chat_id); // Cache'dan tanlangan sanani olish
                 if ($selected_date) {
                     $checkerTime = $this->dateFormatFunction->validateDateTime($request->message['text'], $selected_date);
                     if ($checkerTime === true) {
                         $this->telegram->sendMessage($chat_id, "Vaqt to'g'ri kiritildi!"); // Vaqt to'g'ri kiritilganda tasdiqlash
                     } elseif ($checkerTime === false) {
-                        $this->telegram->sendMessage($chat_id, "Iltimos, vaqtni to'g'ri kiriting.");
+                        $this->telegram->sendMessage($chat_id, "Iltimos, vaqtni to'g'ri kiriting. Vaqt Hozirgi vaqtdan keyin bo'lishi kerak!");
                     } else {
                         $this->telegram->sendMessage($chat_id, "Iltimos, vaqtni to'g'ri formatda kiriting (masalan: 14:30).");
                     }
