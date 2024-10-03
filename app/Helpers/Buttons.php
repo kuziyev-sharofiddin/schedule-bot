@@ -35,22 +35,12 @@ class Buttons
                     'text' => "Yuborilgan postlar hisoboti"
                 ]
             ],
-            [
-                [
-                    'text' => "⏪ Ortga"
-                ]
-            ],
         ]
     ];
 
-    public $add_post = [
+    public $come_back = [
         'resize_keyboard' => true,
         'keyboard' => [
-            [
-                [
-                    'text' => "Postni joylash"
-                ]
-            ],
             [
                 [
                     'text' => "⏪ Ortga"
@@ -68,7 +58,7 @@ class Buttons
             ],
             [
                 [
-                    'text' => "Postni o'chirish"
+                    'text' => "❌ Postni o'chirish"
                 ]
             ],
 
@@ -100,7 +90,7 @@ class Buttons
         'keyboard' => [
             [
                 [
-                    'text' => "Postni olib tashlash"
+                    'text' => "❌ Postni olib tashlash"
                 ]
             ],
             [

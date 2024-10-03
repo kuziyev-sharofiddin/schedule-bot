@@ -49,7 +49,7 @@ class MessageController extends Controller
                 $this->telegram->sendButtons($request->message['chat']['id'], "Rejalashtirilgan postlar hisoboti:", $this->buttons->delete_post);
 
                 foreach ($forwardedMessages as $forwardedMessage) {
-                    $message = "Xabar " . $forwardedMessage['day'] . " kuni " . $forwardedMessage['time'] . " da yoboriladi.";
+                    $message = "✅ Xabar " . $forwardedMessage['day'] . " kuni " . $forwardedMessage['time'] . " da yoboriladi.";
                     $this->telegram->sendMessageReply($forwardedMessage['chat_id'], $message, null, ['message_id' => $forwardedMessage['from_chat_message_id']]);
                 }
             }
@@ -124,7 +124,7 @@ class MessageController extends Controller
                     $this->telegram->sendMessage($chat_id, "Kun va vaqt tanlanmagan, iltimos ortga qaytib qaytadan jarayonni boshlang.", $this->buttons->report_buttons);
                 }
 
-                $this->telegram->sendMessage($chat_id, "Xabar jadvalga qo'shildi! Xabar  guruhga $selected_day kuni  soat $selected_time da jo'natiladi.");
+                $this->telegram->sendMessage($chat_id, "✅ Xabar jadvalga qo'shildi! Xabar  guruhga $selected_day kuni  soat $selected_time da jo'natiladi.");
                 $this->telegram->sendButtons($chat_id, "Kun va vaqtni belgilab yana xabar jo'natishingiz mumkin.", $this->buttons->report_detail_buttons);
             }
         }
