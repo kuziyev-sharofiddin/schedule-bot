@@ -4,73 +4,256 @@ namespace App\Http\Controllers;
 
 use App\Helpers\Buttons;
 use App\Helpers\CustomFunctions;
+use App\Helpers\Telegram;
 use App\Models\Message;
 use Illuminate\Http\Request;
-use Telegram\Bot\Laravel\Facades\Telegram;
+use Illuminate\Support\Facades\Log;
+use Telegram\Bot\Api;
 
-class TestController extends Controller
+class MessageController extends Controller
 {
 
     protected $telegram, $buttons, $customFunctions;
 
-    public function __construct(Buttons $buttons, \App\Helpers\Telegram $telegram, CustomFunctions $customFunctions)
+    public function __construct(Buttons $buttons, Telegram $telegram, CustomFunctions $customFunctions)
     {
         $this->telegram = $telegram;
         $this->buttons = $buttons;
         $this->customFunctions = $customFunctions;
     }
+
     public function store(Request $request)
     {
-        $update = Telegram::getWebhookUpdate();
-        $message = $update->getMessage();
+        $posts = Message::query()->get();
+        if (isset($request->message)) {
+            $chat_id = $request->message['chat']['id'];
+            $current_step = cache()->get("step_$chat_id", 'add_post');
 
-        // Start bosilganda kunlarni ko'rsatish
-        if ($message->getText() == '/start') {
-            Telegram::sendMessage([
-                'chat_id' => $message->getChat()->getId(),
-                'text' => "Hafta kunini tanlang:",
-                'reply_markup' => $this->buttons->report_buttons,
-            ]);
+            if ($current_step == 'add_post') {
+                if (isset($request->message['text']) && $request->message['text'] == '/start') {
+                    $this->telegram->sendButtons($chat_id, "Assalomu Alaykum yaxshimisiz. Men yo'naltirilgan xabarlarni kunning qaysidir vaqtlarida jadval asosida guruhga jo'natadigan botman. Quyidagilardan birini tanlang:", $this->buttons->report_detail_buttons);
+                    cache()->put("step_$chat_id", 'add_post');
+                }
+            }
+            if ($current_step == 'add_post') {
+                if (isset($request->message['text']) && $request->message['text'] == 'Yangi post joylash') {
+                    $this->telegram->sendMessage($chat_id, "Iltimos postni guruhga yo'naltiring:");
+                }
+            }
+
+            if (isset($request->message['text']) && $request->message['text'] == 'Rejalashtirilgan postlar hisoboti') {
+                $forwardedMessages = Message::query()->get();
+                if ($forwardedMessages->isEmpty()) {
+                    $this->telegram->sendMessage($request->message['chat']['id'], 'Hech qanday forward qilingan xabar topilmadi.');
+                }
+                $this->telegram->sendButtons($request->message['chat']['id'], "Rejalashtirilgan postlar hisoboti:", $this->buttons->delete_post);
+
+                foreach ($forwardedMessages as $forwardedMessage) {
+                    $message = "Xabar " . $forwardedMessage['day'] . " kuni " . $forwardedMessage['time'] . " da yoboriladi.";
+                    $this->telegram->sendMessageReply($forwardedMessage['chat_id'], $message, null, ['message_id' => $forwardedMessage['from_chat_message_id']]);
+                }
+            }
+            if (isset($request->message['text']) && $request->message['text'] == "Postni olib tashlash") {
+                $post_buttons = $this->buttons->posts();
+                $this->telegram->sendButtons($request->message['chat']['id'], "Quyidagi postlardan birini o'chiring:", $post_buttons);
+            }
+            if (isset($request->message['text'])) {
+                foreach ($posts as $post) {
+                    if (isset($request->message['text']) && $request->message['text'] == $post->day . ' ' . $post->time) {
+                        $post->delete();
+                        $this->telegram->deleteMessage($request->message['chat']['id'], $post->from_chat_message_id);
+                        $this->telegram->sendButtons($request->message['chat']['id'], "Post bazadan muvaffaqiyatli o'chirildi", $this->buttons->report_detail_buttons);
+                    }
+                }
+            }
+
+            if (isset($request->message['text']) && $request->message['text'] == 'Yuborilgan postlar hisoboti') {
+                $forwardedMessages = Message::query()->get();
+                if ($forwardedMessages->isEmpty()) {
+                    $this->telegram->sendMessage($request->message['chat']['id'], 'Hech qanday forward qilingan xabar topilmadi.');
+                }
+                $this->telegram->sendButtons($request->message['chat']['id'], "Yuborilgan postlar hisoboti:", $this->buttons->report_detail_buttons);
+
+                foreach ($forwardedMessages as $forwardedMessage) {
+                    $message = "Xabar " . $forwardedMessage['day'] . " kuni " . $forwardedMessage['time'] . " da yoboriladi.";
+                    $this->telegram->sendMessageReply($forwardedMessage['chat_id'], $message, null, ['message_id' => $forwardedMessage['from_chat_message_id']]);
+                }
+            }
+
+            if (isset($request->message['forward_from']) || isset($request->message['forward_from_chat'])) {
+                $report_buttons = $this->buttons->getReportButtons();
+                cache()->put("selected_forward_message_$chat_id", $request->message['message_id']);
+                $this->telegram->sendButtons($chat_id, "Iltimos, hafta kunini belgilang:", $report_buttons);
+            }
+
+            if (isset($request->message['text']) && (in_array($request->message['text'], ['Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba', 'Yakshanba']))) {
+                cache()->put("selected_day_$chat_id", $request->message['text']);
+                $this->telegram->sendButtons($chat_id, "Iltimos, vaqtni tanlang yoki qo'lda kiriting (24-soat formatida, masalan: 10:00):", $this->buttons->number_buttons);
+            }
+
+            if (isset($request->message['text']) && (preg_match('/^([01]\d|2[0-3]):([0-5]\d)$/', $request->message['text']))) {
+                cache()->put("selected_time_$chat_id", $request->message['text']);
+                $this->telegram->sendButtons($chat_id, "Xabar qo'shildi.", $this->buttons->completed_button);
+            }
+            if (isset($request->message['text']) && $request->message['text'] == 'Yakunlash') {
+                $selected_day = cache()->get("selected_day_$chat_id");
+                $selected_time = cache()->get("selected_time_$chat_id");
+                $selected_forward_from_chat_id = cache()->get("selected_forward_message_$chat_id");
+                $message = "Xabar " . $selected_day . " kuni " . $selected_time . " da yoboriladi.";
+                $this->telegram->sendMessageReply($chat_id, $message, null, ['message_id' => $selected_forward_from_chat_id]);
+                $this->telegram->sendButtons($chat_id, "Xabar qabul qilindi.Hammasi to'g'ri bo'lsa tasdiqlash tugmasini bosing:", $this->buttons->confirm_button);
+            }
+            if (isset($request->message['text']) && $request->message['text'] == "Postni o'chirish") {
+                $selected_forward_from_chat_id = cache()->get("selected_forward_message_$chat_id");
+                $this->telegram->deleteMessage($request->message['chat']['id'], $selected_forward_from_chat_id);
+                $this->telegram->sendButtons($chat_id, "Post muvaffaqiyatli o'chirildi.", $this->buttons->report_detail_buttons);
+            }
+
+            if (isset($request->message['text']) && $request->message['text'] == 'Tasdiqlash') {
+                $selected_day = cache()->get("selected_day_$chat_id");
+                $selected_time = cache()->get("selected_time_$chat_id");
+                $selected_forward_from_chat_id = cache()->get("selected_forward_message_$chat_id");
+                if ($selected_day && $selected_time && $selected_forward_from_chat_id) {
+                    Message::query()->create([
+                        'chat_id' => $chat_id,
+                        'from_chat_message_id' => $selected_forward_from_chat_id,
+                        'day' => $selected_day,
+                        'time' => $selected_time
+                    ]);
+                } else {
+                    $this->telegram->sendMessage($chat_id, "Kun va vaqt tanlanmagan, iltimos ortga qaytib qaytadan jarayonni boshlang.", $this->buttons->report_buttons);
+                }
+
+                $this->telegram->sendMessage($chat_id, "Xabar jadvalga qo'shildi! Xabar  guruhga $selected_day kuni  soat $selected_time da jo'natiladi.");
+                $this->telegram->sendButtons($chat_id, "Kun va vaqtni belgilab yana xabar jo'natishingiz mumkin.", $this->buttons->report_detail_buttons);
+            }
         }
+    }
+}
 
-        // Kun tanlanganda va vaqtni kiritishni so'rash
-        elseif (in_array($message->getText(), ['Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba', 'Yakshanba'])) {
-            $request->session()->put('selected_day', $message->getText());
 
-            Telegram::sendMessage([
-                'chat_id' => $message->getChat()->getId(),
-                'text' => "Iltimos, vaqtni tanlang yoki qo'lda kiriting (24-soat formatida, masalan: 10:00):",
-                'reply_markup' => $this->buttons->number_buttons,
-            ]);
-        }
+namespace App\Http\Controllers;
 
-        // Vaqt tanlanganda
-        elseif (preg_match('/^([01]\d|2[0-3]):([0-5]\d)$/', $message->getText())) {
-            $request->session()->put('selected_time', $message->getText());
+use App\Helpers\Buttons;
+use App\Helpers\CustomFunctions;
+use App\Helpers\Telegram;
+use App\Models\Message;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Telegram\Bot\Api;
 
-            Telegram::sendMessage([
-                'chat_id' => $message->getChat()->getId(),
-                'text' => "Endi xabarni yo'naltiring."
-            ]);
-        }
+class MessageController extends Controller
+{
 
-        // Forward qilingan xabarni olish
-        elseif ($message->getForwardFromChat()) {
-            $selected_day = $request->session()->get('selected_day');
-            $selected_time = $request->session()->get('selected_time');
+    protected $telegram, $buttons, $customFunctions;
 
-            // Xabarni saqlash
-            Message::create([
-                'chat_id' => $message->getChat()->getId(),
-                'message_id' => $message->getMessageId(),
-                'day' => $selected_day,
-                'time' => $selected_time
-            ]);
+    public function __construct(Buttons $buttons, Telegram $telegram, CustomFunctions $customFunctions)
+    {
+        $this->telegram = $telegram;
+        $this->buttons = $buttons;
+        $this->customFunctions = $customFunctions;
+    }
 
-            Telegram::sendMessage([
-                'chat_id' => $message->getChat()->getId(),
-                'text' => "Xabar jadvalga qo'shildi!"
-            ]);
+    public function store(Request $request)
+    {
+        $posts = Message::query()->get();
+        if (isset($request->message)) {
+            $chat_id = $request->message['chat']['id'];
+
+            if (isset($request->message['text']) && $request->message['text'] == '/start') {
+                $this->telegram->sendButtons($chat_id, "Assalomu Alaykum yaxshimisiz. Men yo'naltirilgan xabarlarni kunning qaysidir vaqtlarida jadval asosida guruhga jo'natadigan botman. Quyidagilardan birini tanlang:", $this->buttons->report_detail_buttons);
+            }
+
+            if (isset($request->message['text']) && $request->message['text'] == 'Yangi post joylash') {
+                $this->telegram->sendMessage($chat_id, "Iltimos postni guruhga yo'naltiring:");
+            }
+
+            if (isset($request->message['text']) && $request->message['text'] == 'Rejalashtirilgan postlar hisoboti') {
+                $forwardedMessages = Message::query()->get();
+                if ($forwardedMessages->isEmpty()) {
+                    $this->telegram->sendMessage($request->message['chat']['id'], 'Hech qanday forward qilingan xabar topilmadi.');
+                }
+                $this->telegram->sendButtons($request->message['chat']['id'], "Rejalashtirilgan postlar hisoboti:", $this->buttons->delete_post);
+
+                foreach ($forwardedMessages as $forwardedMessage) {
+                    $message = "Xabar " . $forwardedMessage['day'] . " kuni " . $forwardedMessage['time'] . " da yoboriladi.";
+                    $this->telegram->sendMessageReply($forwardedMessage['chat_id'], $message, null, ['message_id' => $forwardedMessage['from_chat_message_id']]);
+                }
+            }
+            if (isset($request->message['text']) && $request->message['text'] == "Postni olib tashlash") {
+                $post_buttons = $this->buttons->posts();
+                $this->telegram->sendButtons($request->message['chat']['id'], "Quyidagi postlardan birini o'chiring:", $post_buttons);
+            }
+            if (isset($request->message['text'])) {
+                foreach ($posts as $post) {
+                    if (isset($request->message['text']) && $request->message['text'] == $post->day . ' ' . $post->time) {
+                        $post->delete();
+                        $this->telegram->deleteMessage($request->message['chat']['id'], $post->from_chat_message_id);
+                        $this->telegram->sendButtons($request->message['chat']['id'], "Post bazadan muvaffaqiyatli o'chirildi", $this->buttons->report_detail_buttons);
+                    }
+                }
+            }
+
+            if (isset($request->message['text']) && $request->message['text'] == 'Yuborilgan postlar hisoboti') {
+                $forwardedMessages = Message::query()->get();
+                if ($forwardedMessages->isEmpty()) {
+                    $this->telegram->sendMessage($request->message['chat']['id'], 'Hech qanday forward qilingan xabar topilmadi.');
+                }
+                $this->telegram->sendButtons($request->message['chat']['id'], "Yuborilgan postlar hisoboti:", $this->buttons->report_detail_buttons);
+
+                foreach ($forwardedMessages as $forwardedMessage) {
+                    $message = "Xabar " . $forwardedMessage['day'] . " kuni " . $forwardedMessage['time'] . " da yoboriladi.";
+                    $this->telegram->sendMessageReply($forwardedMessage['chat_id'], $message, null, ['message_id' => $forwardedMessage['from_chat_message_id']]);
+                }
+            }
+
+            if (isset($request->message['forward_from']) || isset($request->message['forward_from_chat'])) {
+                $report_buttons = $this->buttons->getReportButtons();
+                cache()->put("selected_forward_message_$chat_id", $request->message['message_id']);
+                $this->telegram->sendButtons($chat_id, "Iltimos, hafta kunini belgilang:", $report_buttons);
+            }
+
+            if (isset($request->message['text']) && (in_array($request->message['text'], ['Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba', 'Yakshanba']))) {
+                cache()->put("selected_day_$chat_id", $request->message['text']);
+                $this->telegram->sendButtons($chat_id, "Iltimos, vaqtni tanlang yoki qo'lda kiriting (24-soat formatida, masalan: 10:00):", $this->buttons->number_buttons);
+            }
+
+            if (isset($request->message['text']) && (preg_match('/^([01]\d|2[0-3]):([0-5]\d)$/', $request->message['text']))) {
+                cache()->put("selected_time_$chat_id", $request->message['text']);
+                $this->telegram->sendButtons($chat_id, "Xabar qo'shildi.", $this->buttons->completed_button);
+            }
+            if (isset($request->message['text']) && $request->message['text'] == 'Yakunlash') {
+                $selected_day = cache()->get("selected_day_$chat_id");
+                $selected_time = cache()->get("selected_time_$chat_id");
+                $selected_forward_from_chat_id = cache()->get("selected_forward_message_$chat_id");
+                $message = "Xabar " . $selected_day . " kuni " . $selected_time . " da yoboriladi.";
+                $this->telegram->sendMessageReply($chat_id, $message, null, ['message_id' => $selected_forward_from_chat_id]);
+                $this->telegram->sendButtons($chat_id, "Xabar qabul qilindi.Hammasi to'g'ri bo'lsa tasdiqlash tugmasini bosing:", $this->buttons->confirm_button);
+            }
+            if (isset($request->message['text']) && $request->message['text'] == "Postni o'chirish") {
+                $selected_forward_from_chat_id = cache()->get("selected_forward_message_$chat_id");
+                $this->telegram->deleteMessage($request->message['chat']['id'], $selected_forward_from_chat_id);
+                $this->telegram->sendButtons($chat_id, "Post muvaffaqiyatli o'chirildi.", $this->buttons->report_detail_buttons);
+            }
+
+            if (isset($request->message['text']) && $request->message['text'] == 'Tasdiqlash') {
+                $selected_day = cache()->get("selected_day_$chat_id");
+                $selected_time = cache()->get("selected_time_$chat_id");
+                $selected_forward_from_chat_id = cache()->get("selected_forward_message_$chat_id");
+                if ($selected_day && $selected_time && $selected_forward_from_chat_id) {
+                    Message::query()->create([
+                        'chat_id' => $chat_id,
+                        'from_chat_message_id' => $selected_forward_from_chat_id,
+                        'day' => $selected_day,
+                        'time' => $selected_time
+                    ]);
+                } else {
+                    $this->telegram->sendMessage($chat_id, "Kun va vaqt tanlanmagan, iltimos ortga qaytib qaytadan jarayonni boshlang.", $this->buttons->report_buttons);
+                }
+
+                $this->telegram->sendMessage($chat_id, "Xabar jadvalga qo'shildi! Xabar  guruhga $selected_day kuni  soat $selected_time da jo'natiladi.");
+                $this->telegram->sendButtons($chat_id, "Kun va vaqtni belgilab yana xabar jo'natishingiz mumkin.", $this->buttons->report_detail_buttons);
+            }
         }
     }
 }

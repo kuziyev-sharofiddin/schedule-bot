@@ -3,6 +3,7 @@
 namespace App\Helpers;
 
 use App\Models\ClientReserve;
+use App\Models\Message;
 use Carbon\Carbon;
 
 class Buttons
@@ -67,6 +68,12 @@ class Buttons
             ],
             [
                 [
+                    'text' => "Postni o'chirish"
+                ]
+            ],
+
+            [
+                [
                     'text' => "⏪ Ortga"
                 ]
             ],
@@ -88,6 +95,47 @@ class Buttons
             ],
         ]
     ];
+    public $delete_post = [
+        'resize_keyboard' => true,
+        'keyboard' => [
+            [
+                [
+                    'text' => "Postni olib tashlash"
+                ]
+            ],
+            [
+                [
+                    'text' => "⏪ Ortga"
+                ]
+            ],
+        ]
+    ];
+
+    public function posts() {
+        $posts = Message::query()->get();
+
+        $keyboard = [];
+
+        foreach ($posts as $post) {
+            $keyboard[] = [
+                [
+                    'text' => $post->day . ' ' . $post->time
+                ]
+            ];
+        }
+
+        // Ortga tugmasini qo'shamiz
+        $keyboard[] = [
+            [
+                'text' => '⏪ Ortga'
+            ],
+        ];
+
+        return [
+            'resize_keyboard' => true,
+            'keyboard' => $keyboard
+        ];
+    }
     public function getReportButtons()
     {
         $today = Carbon::today();
