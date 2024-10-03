@@ -84,23 +84,31 @@ class Buttons
         $today = Carbon::today();
         $tomorrow = Carbon::tomorrow();
         $day_after_tomorrow = Carbon::today()->addDays(2);
+        $tomorrw_ay_after_tomorrow = Carbon::today()->addDays(3);
 
         $today_weekday = $this->daysOfWeek[$today->format('l')];
         $tomorrow_weekday = $this->daysOfWeek[$tomorrow->format('l')];
         $day_after_tomorrow_weekday = $this->daysOfWeek[$day_after_tomorrow->format('l')];
+        $tomorrw_ay_after_tomorrow_weekday = $this->daysOfWeek[$tomorrw_ay_after_tomorrow->format('l')];
 
         return [
             'resize_keyboard' => true,
             'keyboard' => [
                 [
                     [
-                        'text' => $today_weekday
+                        'text' => $today_weekday . "\n" . $today->format('d.m.Y')
                     ],
                     [
-                        'text' => $tomorrow_weekday
+                        'text' => $tomorrow_weekday . "\n" . $tomorrow->format('d.m.Y')
+                    ],
+
+                ],
+                [
+                    [
+                        'text' => $day_after_tomorrow_weekday . "\n" . $day_after_tomorrow->format('d.m.Y')
                     ],
                     [
-                        'text' => $day_after_tomorrow_weekday
+                        'text' => $tomorrw_ay_after_tomorrow_weekday . "\n" . $tomorrw_ay_after_tomorrow->format('d.m.Y')
                     ]
                 ],
                 [
@@ -116,27 +124,30 @@ class Buttons
     {
         $today_weekday = $this->daysOfWeek[Carbon::today()->format('l')];
         if ($text == $today_weekday) {
-            $currentHour = Carbon::now()->format('H:i');
-            $filteredButtons = array_filter($this->number_buttons['keyboard'], function ($buttonRow) use ($currentHour) {
-                $filteredRow = array_filter($buttonRow, function ($button) use ($currentHour) {
-                    if (preg_match('/^\d{2}:\d{2}$/', $button['text'])) {
-                        [$buttonHour, $buttonMinute] = explode(':', $button['text']);
-                        [$currentHourValue, $currentMinuteValue] = explode(':', $currentHour);
-                        if ($buttonHour > $currentHourValue || ($buttonHour == $currentHourValue && $buttonMinute > $currentMinuteValue)) {
-                            return true;
-                        }
-                    }
-                    return false;
-                });
-                return !empty($filteredRow) ? $filteredRow : false;
-            });
-            $filteredButtons[] = [['text' => '⏪ Ortga']];
-            return [
+            $currentHour = Carbon::now()->hour;
+            \Log::info('Current hour: ' . $currentHour);
+            $buttons = [
                 'resize_keyboard' => true,
-                'keyboard' => array_values($filteredButtons)
+                'keyboard' => []
             ];
+            $row = [];
+            for ($hour = $currentHour + 1; $hour <= 23; $hour++) {
+                $formattedHour = str_pad($hour, 2, '0', STR_PAD_LEFT) . ":00";
+                $row[] = ['text' => $formattedHour];
+
+                if (count($row) == 4) {
+                    $buttons['keyboard'] [] = $row;
+                    $row = [];
+                }
+            }
+            if (!empty($row)) {
+                $buttons['keyboard'][] = $row;
+            }
+            $buttons['keyboard'][] = [['text' => '⏪ Ortga']];
+            return $buttons;
         } else {
             return $this->number_buttons;
         }
     }
+
 }

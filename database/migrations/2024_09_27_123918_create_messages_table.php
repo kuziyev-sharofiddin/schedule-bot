@@ -15,7 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('chat_id');
             $table->string('message_id');
-            $table->string('day');
+            $table->string('weekDay');
+            $table->date('date');
             $table->time('time');
             $table->timestamps();
         });
