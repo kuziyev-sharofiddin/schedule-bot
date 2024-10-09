@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('message_id')->nullable();
             $table->string('weekDay')->nullable();
             $table->date('date')->nullable();
-            $table->time('time')->nullable();
+            $table->string('time')->nullable();
             $table->timestamps();
         });
     }

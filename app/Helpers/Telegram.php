@@ -34,7 +34,8 @@ class Telegram
             'chat_id' => $chat_id,
             'text' => $message,
             'message_thread_id' => $message_thread_id,
-            'reply_parameters' => $reply_parameters
+            'reply_parameters' => $reply_parameters,
+            'parse_mode' => 'html'
         ]);
     }
 

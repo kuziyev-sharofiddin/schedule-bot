@@ -39,7 +39,7 @@ class Buttons
                 ['text' => "21:00"], ['text' => "22:00"], ['text' => "23:00"], ['text' => "00:00"]
             ],
             [
-                ['text' => "⏪ Ortga"]
+                ['text' => "Ortga"]
             ],
         ]
     ];
@@ -48,7 +48,7 @@ class Buttons
         'keyboard' => [
             [
                 [
-                    'text' => "Yangi post joylash"
+                    'text' => "⏬ Yangi post joylash"
                 ]
             ],
             [
@@ -69,7 +69,7 @@ class Buttons
         'keyboard' => [
             [
                 [
-                    'text' => "⏪ Ortga"
+                    'text' => "Ortga"
                 ]
             ],
         ]
@@ -79,18 +79,12 @@ class Buttons
         'keyboard' => [
             [
                 [
-                    'text' => "Yakunlash"
+                    'text' => "🏁 Yakunlash"
                 ]
             ],
             [
                 [
-                    'text' => "❌ Postni o'chirish"
-                ]
-            ],
-
-            [
-                [
-                    'text' => "⏪ Ortga"
+                    'text' => "Ortga"
                 ]
             ],
         ]
@@ -101,12 +95,17 @@ class Buttons
         'keyboard' => [
             [
                 [
-                    'text' => "Tasdiqlash"
+                    'text' => "✅ Tasdiqlash"
                 ]
             ],
             [
                 [
-                    'text' => "⏪ Ortga"
+                    'text' => "❌ Postni o'chirish"
+                ]
+            ],
+            [
+                [
+                    'text' => "Ortga"
                 ]
             ],
         ]
@@ -121,7 +120,7 @@ class Buttons
             ],
             [
                 [
-                    'text' => "⏪ Ortga"
+                    'text' => "Ortga"
                 ]
             ],
         ]
@@ -143,7 +142,7 @@ class Buttons
         // Ortga tugmasini qo'shamiz
         $keyboard[] = [
             [
-                'text' => '⏪ Ortga'
+                'text' => 'Ortga'
             ],
         ];
 
@@ -185,7 +184,7 @@ class Buttons
                 ],
                 [
                     [
-                        'text' => "⏪ Ortga"
+                        'text' => "Ortga"
                     ]
                 ],
             ]
@@ -215,7 +214,7 @@ class Buttons
             if (!empty($row)) {
                 $buttons['keyboard'][] = $row;
             }
-            $buttons['keyboard'][] = [['text' => '⏪ Ortga']];
+            $buttons['keyboard'][] = [['text' => 'Ortga']];
             return $buttons;
         } else {
             return $this->number_buttons;
